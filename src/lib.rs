@@ -1,4 +1,150 @@
 #![crate_id = "decodeopts"]
 #![crate_type = "lib"];
 
+extern crate getopts;
+extern crate serialize;
+use getopts::Matches;
 
+pub struct Decoder {
+  priv matches: Matches,
+  priv cur: ~str
+}
+
+impl Decoder {
+  pub fn new(matches: Matches) -> Decoder {
+    Decoder {
+      matches: matches,
+      cur: ~""
+    }
+  }
+
+  fn err(&self, msg: &str) -> ! {
+    fail!("Options decoding error: {}", msg);
+  }
+
+  fn missing_field(&self, field: &str) -> ! {
+    self.err(format!("missing option '{}'", field));
+  }
+
+  fn expected(&self, expected: &str, field: &str, value: &str) -> ! {
+    self.err(format!("expected {expct} but found {fld}: {val}",
+                   expct=expected, fld=field, val=value))
+  }
+}
+
+
+impl serialize::Decoder for Decoder {
+
+  fn read_nil(&mut self) {
+
+  }
+
+  fn read_u64(&mut self)  -> u64  { self.read_f64() as u64 }
+  fn read_u32(&mut self)  -> u32  { self.read_f64() as u32 }
+  fn read_u16(&mut self)  -> u16  { self.read_f64() as u16 }
+  fn read_u8 (&mut self)  -> u8   { self.read_f64() as u8 }
+  fn read_uint(&mut self) -> uint { self.read_f64() as uint }
+
+  fn read_i64(&mut self) -> i64 { self.read_f64() as i64 }
+  fn read_i32(&mut self) -> i32 { self.read_f64() as i32 }
+  fn read_i16(&mut self) -> i16 { self.read_f64() as i16 }
+  fn read_i8 (&mut self) -> i8  { self.read_f64() as i8 }
+  fn read_int(&mut self) -> int { self.read_f64() as int }
+
+  fn read_f32(&mut self) -> f32 { self.read_f64() as f32 }
+  fn read_f64(&mut self) -> f64 {
+    use std::from_str::FromStr;
+    //debug!("read_f64");
+    match self.matches.opt_str(self.cur) {
+      None    => self.missing_field(self.cur),
+      Some(s) => match FromStr::from_str(s) {
+        None         => self.expected("f64", self.cur, s),
+        Some(nb) => nb
+      }
+    }
+  }
+  fn read_bool(&mut self) -> bool {
+    true
+  }
+
+  fn read_char(&mut self) -> char {
+    'a'
+  }
+
+  fn read_str(&mut self) -> ~str {
+    ~"hello"
+  }
+
+  fn read_enum<T>(&mut self, name: &str, f: |&mut Decoder| -> T) -> T {
+    f(self)
+  }
+
+  fn read_enum_variant<T>(&mut self, names: &[&str], f: |&mut Decoder, uint| -> T) -> T {
+    f(self, 0)
+  }
+
+  fn read_enum_variant_arg<T>(&mut self, a_idx: uint, f: |&mut Decoder| -> T) -> T {
+    f(self)
+  }
+
+  fn read_enum_struct_variant<T>(&mut self, names: &[&str], f: |&mut Decoder, uint| -> T) -> T {
+    f(self, 0)
+  }
+
+  fn read_enum_struct_variant_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut Decoder| -> T) -> T {
+    f(self)
+  }
+
+  fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut Decoder| -> T) -> T {
+    println!("reading struct: {} | len = {}", s_name, len);
+    f(self)
+  }
+
+  fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut Decoder| -> T) -> T {
+    println!("reading struct field: {} | idx = {}", f_name, f_idx);
+    let data = f(self);
+    //println!("got struct field data: {}", data);
+    data
+  }
+
+  fn read_tuple<T>(&mut self, f: |&mut Decoder, uint| -> T) -> T {
+    f(self, 0)
+  }
+
+  fn read_tuple_arg<T>(&mut self, a_idx: uint, f: |&mut Decoder| -> T) -> T {
+    f(self)
+  }
+
+  fn read_tuple_struct<T>(&mut self, s_name: &str, f: |&mut Decoder, uint| -> T) -> T {
+    f(self, 0)
+  }
+
+  fn read_tuple_struct_arg<T>(&mut self, a_idx: uint, f: |&mut Decoder| -> T) -> T {
+    f(self)
+  }
+
+  fn read_option<T>(&mut self, f: |&mut Decoder, bool| -> T) -> T {
+    f(self, true)
+  }
+
+  fn read_seq<T>(&mut self, f: |&mut Decoder, uint| -> T) -> T {
+    f(self, 0)
+  }
+
+  fn read_seq_elt<T>(&mut self, idx: uint, f: |&mut Decoder| -> T) -> T {
+    f(self)
+  }
+
+  fn read_map<T>(&mut self, f: |&mut Decoder, uint| -> T) -> T {
+    f(self, 0)
+  }
+
+  fn read_map_elt_key<T>(&mut self, idx: uint, f: |&mut Decoder| -> T) -> T {
+    f(self)
+  }
+
+  fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut Decoder| -> T) -> T {
+    f(self)
+  }
+
+}
