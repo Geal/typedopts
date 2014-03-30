@@ -27,7 +27,7 @@ impl Decoder {
   }
 
   fn unimplemented(&self) -> ! {
-    self.err("this mehod is not implemented yet");
+    self.err("this method is not implemented yet");
   }
 
   fn missing_field(&self, field: &str) -> ! {
@@ -154,8 +154,13 @@ impl serialize::Decoder for Decoder {
   }
 
   fn read_option<T>(&mut self, f: |&mut Decoder, bool| -> T) -> T {
-    f(self, true);
-    self.unimplemented()
+    println!("read_option");
+    match self.matches.opt_str(self.cur) {
+      None    => {println!("option not there");f(self, false)},
+      Some(s) => {println!("option is there");f(self, true)}
+    }
+    //f(self, true);
+    //self.unimplemented()
   }
 
   fn read_tuple<T>(&mut self, f: |&mut Decoder, uint| -> T) -> T {
