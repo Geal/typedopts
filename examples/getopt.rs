@@ -7,9 +7,16 @@ use std::os;
 use serialize::Decodable;
 
 #[deriving(Decodable)]
+enum Color {
+  red,
+  blue
+}
+
+#[deriving(Decodable)]
 pub struct TestStruct1  {
-    data_int: u8,
-    data_str: ~str,
+  data_int: u8,
+  data_str: ~str,
+  color: Color
 }
 
 fn do_work(inp: &str, out: Option<~str>) {
@@ -36,6 +43,7 @@ fn main() {
     optopt("o", "", "set output file name", "NAME"),
     optopt("d", "data_int", "number", "NB"),
     optopt("s", "data_str", "str", "NB"),
+    optopt("c", "color", "scolored", ""),
     optflag("h", "help", "print this help menu")
   ];
   let matches = match getopts(args.tail(), opts) {
@@ -52,6 +60,10 @@ fn main() {
   let decoded: TestStruct1 = Decodable::decode(&mut decoder);
 
   println!("got data: s -> {} n -> {}", decoded.data_str, decoded.data_int);
+  match decoded.color {
+    red  => println!("red"),
+    blue =>println!("blue")
+  }
 
   /*if matches.opt_present("h") {
     print_usage(program, opts);

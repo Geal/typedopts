@@ -9,14 +9,16 @@ use std::str::StrSlice;
 
 pub struct Decoder {
   priv matches: Matches,
-  priv cur: ~str
+  priv cur: ~str,
+  priv current_type: ~str
 }
 
 impl Decoder {
   pub fn new(matches: Matches) -> Decoder {
     Decoder {
       matches: matches,
-      cur: ~""
+      cur: ~"",
+      current_type: ~""
     }
   }
 
@@ -98,22 +100,35 @@ impl serialize::Decoder for Decoder {
   }
 
   fn read_enum<T>(&mut self, name: &str, f: |&mut Decoder| -> T) -> T {
+    println!("reading enum: {}", name);
+    self.current_type = name.to_owned();
     f(self)
   }
 
   fn read_enum_variant<T>(&mut self, names: &[&str], f: |&mut Decoder, uint| -> T) -> T {
-    f(self, 0)
+    println!("reading enum variant({}): {}", self.cur, names);
+    match self.matches.opt_str(self.cur) {
+      None    => self.missing_field(self.cur),
+      Some(s) => match names.iter().position(|&e| e == s) {
+        None    => self.expected(self.current_type + " enum", self.cur),
+        Some(i) => f(self, i)
+      }
+    }
+    //f(self, 0)
   }
 
   fn read_enum_variant_arg<T>(&mut self, a_idx: uint, f: |&mut Decoder| -> T) -> T {
+    println!("reading enum variant_arg: {}", a_idx);
     f(self)
   }
 
   fn read_enum_struct_variant<T>(&mut self, names: &[&str], f: |&mut Decoder, uint| -> T) -> T {
+    println!("reading enum struct variant: {}", names);
     f(self, 0)
   }
 
   fn read_enum_struct_variant_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut Decoder| -> T) -> T {
+    println!("reading enum struct variant field: {}, {}", f_name, f_idx);
     f(self)
   }
 
