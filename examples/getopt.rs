@@ -23,6 +23,7 @@ fn do_work(inp: &str, out: Option<~str>) {
 fn print_usage(program: &str, _opts: &[OptGroup]) {
     println!("Usage: {} [options]", program);
     println!("-o\t\tOutput");
+    println!("-d --data_int\tNumber");
     println!("-h --help\tUsage");
 }
 
@@ -33,6 +34,8 @@ fn main() {
 
   let opts = ~[
     optopt("o", "", "set output file name", "NAME"),
+    optopt("d", "data_int", "number", "NB"),
+    optopt("s", "data_str", "str", "NB"),
     optflag("h", "help", "print this help menu")
   ];
   let matches = match getopts(args.tail(), opts) {
@@ -40,10 +43,15 @@ fn main() {
     Err(f) => { fail!(f.to_err_msg()) }
   };
 
+  if matches.opt_present("h") {
+    print_usage(program, opts);
+    return;
+  }
+
   let mut decoder = decodeopts::Decoder::new(matches);
   let decoded: TestStruct1 = Decodable::decode(&mut decoder);
 
-  println!("got data: {}", decoded.data_str);
+  println!("got data: s -> {} n -> {}", decoded.data_str, decoded.data_int);
 
   /*if matches.opt_present("h") {
     print_usage(program, opts);

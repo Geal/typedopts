@@ -4,6 +4,8 @@
 extern crate getopts;
 extern crate serialize;
 use getopts::Matches;
+use std::from_str::FromStr;
+use std::str::StrSlice;
 
 pub struct Decoder {
   priv matches: Matches,
@@ -26,12 +28,21 @@ impl Decoder {
     self.err(format!("missing option '{}'", field));
   }
 
-  fn expected(&self, expected: &str, field: &str, value: &str) -> ! {
+  fn expected(&self, expected: &str, field: &str) -> ! {
     self.err(format!("expected {expct} but found {fld}: {val}",
-                   expct=expected, fld=field, val=value))
+                   expct=expected, fld=field, val=self.matches.opt_str(self.cur).unwrap()))
   }
+
 }
 
+impl<T:FromStr> Decoder {
+  fn get_field<T:FromStr>(&self, field: &str) -> Option<T> {
+    match self.matches.opt_str(self.cur) {
+      None    => self.missing_field(self.cur),
+      Some(s) => FromStr::from_str(s)
+    }
+  }
+}
 
 impl serialize::Decoder for Decoder {
 
@@ -53,26 +64,37 @@ impl serialize::Decoder for Decoder {
 
   fn read_f32(&mut self) -> f32 { self.read_f64() as f32 }
   fn read_f64(&mut self) -> f64 {
-    use std::from_str::FromStr;
-    //debug!("read_f64");
     match self.matches.opt_str(self.cur) {
       None    => self.missing_field(self.cur),
       Some(s) => match FromStr::from_str(s) {
-        None         => self.expected("f64", self.cur, s),
+        None     => self.expected("f64", self.cur),
         Some(nb) => nb
       }
     }
   }
+
   fn read_bool(&mut self) -> bool {
-    true
+    match self.matches.opt_str(self.cur) {
+      None    => self.missing_field(self.cur),
+      Some(s) => match FromStr::from_str(s) {
+        None     => self.expected("boolean", self.cur),
+        Some(b) => b
+      }
+    }
   }
 
   fn read_char(&mut self) -> char {
-    'a'
+    match self.matches.opt_str(self.cur) {
+      None    => self.missing_field(self.cur),
+      Some(s) => if s.char_len() == 1 { s.char_at(0) } else { self.expected("char", self.cur) }
+    }
   }
 
   fn read_str(&mut self) -> ~str {
-    ~"hello"
+    match self.matches.opt_str(self.cur) {
+      None    => self.missing_field(self.cur),
+      Some(s) => s
+    }
   }
 
   fn read_enum<T>(&mut self, name: &str, f: |&mut Decoder| -> T) -> T {
@@ -97,11 +119,13 @@ impl serialize::Decoder for Decoder {
 
   fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut Decoder| -> T) -> T {
     println!("reading struct: {} | len = {}", s_name, len);
+    self.cur = s_name.to_owned();
     f(self)
   }
 
   fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut Decoder| -> T) -> T {
     println!("reading struct field: {} | idx = {}", f_name, f_idx);
+    self.cur = f_name.to_owned();
     let data = f(self);
     //println!("got struct field data: {}", data);
     data
