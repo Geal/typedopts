@@ -26,6 +26,10 @@ impl Decoder {
     fail!("Options decoding error: {}", msg);
   }
 
+  fn unimplemented(&self) -> ! {
+    self.err("this mehod is not implemented yet");
+  }
+
   fn missing_field(&self, field: &str) -> ! {
     self.err(format!("missing option '{}'", field));
   }
@@ -119,17 +123,20 @@ impl serialize::Decoder for Decoder {
 
   fn read_enum_variant_arg<T>(&mut self, a_idx: uint, f: |&mut Decoder| -> T) -> T {
     println!("reading enum variant_arg: {}", a_idx);
-    f(self)
+    f(self);
+    self.unimplemented()
   }
 
   fn read_enum_struct_variant<T>(&mut self, names: &[&str], f: |&mut Decoder, uint| -> T) -> T {
     println!("reading enum struct variant: {}", names);
-    f(self, 0)
+    f(self, 0);
+    self.unimplemented()
   }
 
   fn read_enum_struct_variant_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut Decoder| -> T) -> T {
     println!("reading enum struct variant field: {}, {}", f_name, f_idx);
-    f(self)
+    f(self);
+    self.unimplemented()
   }
 
   fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut Decoder| -> T) -> T {
@@ -146,44 +153,54 @@ impl serialize::Decoder for Decoder {
     data
   }
 
+  fn read_option<T>(&mut self, f: |&mut Decoder, bool| -> T) -> T {
+    f(self, true);
+    self.unimplemented()
+  }
+
   fn read_tuple<T>(&mut self, f: |&mut Decoder, uint| -> T) -> T {
-    f(self, 0)
+    f(self, 0);
+    self.unimplemented()
   }
 
   fn read_tuple_arg<T>(&mut self, a_idx: uint, f: |&mut Decoder| -> T) -> T {
-    f(self)
+    f(self);
+    self.unimplemented()
   }
 
   fn read_tuple_struct<T>(&mut self, s_name: &str, f: |&mut Decoder, uint| -> T) -> T {
-    f(self, 0)
+    f(self, 0);
+    self.unimplemented()
   }
 
   fn read_tuple_struct_arg<T>(&mut self, a_idx: uint, f: |&mut Decoder| -> T) -> T {
-    f(self)
-  }
-
-  fn read_option<T>(&mut self, f: |&mut Decoder, bool| -> T) -> T {
-    f(self, true)
+    f(self);
+    self.unimplemented()
   }
 
   fn read_seq<T>(&mut self, f: |&mut Decoder, uint| -> T) -> T {
-    f(self, 0)
+    f(self, 0);
+    self.unimplemented()
   }
 
   fn read_seq_elt<T>(&mut self, idx: uint, f: |&mut Decoder| -> T) -> T {
-    f(self)
+    f(self);
+    self.unimplemented()
   }
 
   fn read_map<T>(&mut self, f: |&mut Decoder, uint| -> T) -> T {
-    f(self, 0)
+    f(self, 0);
+    self.unimplemented()
   }
 
   fn read_map_elt_key<T>(&mut self, idx: uint, f: |&mut Decoder| -> T) -> T {
-    f(self)
+    f(self);
+    self.unimplemented()
   }
 
   fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut Decoder| -> T) -> T {
-    f(self)
+    f(self);
+    self.unimplemented()
   }
 
 }
