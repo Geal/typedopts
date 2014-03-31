@@ -7,6 +7,18 @@ use getopts::Matches;
 use std::from_str::FromStr;
 use std::str::StrSlice;
 
+#[deriving(Eq, Show)]
+pub enum ErrorType {
+  UnimplementedDecoder,
+  MissingField(~str),
+  ExpectedType(~str, ~str, ~str)
+}
+
+#[deriving(Eq, Show)]
+pub struct Error {
+  e: ErrorType
+}
+
 pub struct Decoder {
   priv matches: Matches,
   priv cur: ~str,
@@ -22,21 +34,18 @@ impl Decoder {
     }
   }
 
-  fn err(&self, msg: &str) -> ! {
-    fail!("Options decoding error: {}", msg);
-  }
-
   fn unimplemented(&self) -> ! {
-    self.err("this method is not implemented yet");
+    fail!(Error { e: UnimplementedDecoder });
   }
 
   fn missing_field(&self, field: &str) -> ! {
-    self.err(format!("missing option '{}'", field));
+    fail!(Error { e: MissingField(field.to_owned()) });
   }
 
   fn expected(&self, expected: &str, field: &str) -> ! {
-    self.err(format!("expected {expct} but found {fld}: {val}",
-                   expct=expected, fld=field, val=self.matches.opt_str(self.cur).unwrap()))
+    fail!(Error { e: ExpectedType(field.to_owned(),
+                       expected.to_owned(),
+                       self.matches.opt_str(self.cur).unwrap()) });
   }
 
 }

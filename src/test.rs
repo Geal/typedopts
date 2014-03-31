@@ -4,6 +4,8 @@ use decodeopts = lib;
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use serialize::Decodable;
 use std::task;
+use std::any::AnyRefExt;
+use decodeopts::{Error, UnimplementedDecoder,MissingField,ExpectedType};
 
 mod lib;
 
@@ -32,6 +34,13 @@ fn parse_not_int() {
   });
   println!("result: {}", result);
   assert!(result.is_err());
+  match result {
+    Ok(a) => assert!(false),
+    Err(e)      => {
+      let err = e.as_ref::<Error>().unwrap();
+      assert_eq!(err.e, ExpectedType(~"number", ~"u64", ~"10.0"));
+    }
+  }
 }
 
 #[deriving(Decodable)]
