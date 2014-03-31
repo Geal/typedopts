@@ -56,17 +56,33 @@ impl serialize::Decoder for Decoder {
 
   }
 
-  fn read_u64(&mut self)  -> u64  { self.read_f64() as u64 }
-  fn read_u32(&mut self)  -> u32  { self.read_f64() as u32 }
-  fn read_u16(&mut self)  -> u16  { self.read_f64() as u16 }
-  fn read_u8 (&mut self)  -> u8   { self.read_f64() as u8 }
-  fn read_uint(&mut self) -> uint { self.read_f64() as uint }
+  fn read_u64(&mut self)  -> u64  {
+    match self.matches.opt_str(self.cur) {
+      None    => self.missing_field(self.cur),
+      Some(s) => match FromStr::from_str(s) {
+        None     => self.expected("u64", self.cur),
+        Some(nb) => nb
+      }
+    }
+  }
+  fn read_u32(&mut self)  -> u32  { self.read_u64() as u32 }
+  fn read_u16(&mut self)  -> u16  { self.read_u64() as u16 }
+  fn read_u8 (&mut self)  -> u8   { self.read_u64() as u8 }
+  fn read_uint(&mut self) -> uint { self.read_u64() as uint }
 
-  fn read_i64(&mut self) -> i64 { self.read_f64() as i64 }
-  fn read_i32(&mut self) -> i32 { self.read_f64() as i32 }
-  fn read_i16(&mut self) -> i16 { self.read_f64() as i16 }
-  fn read_i8 (&mut self) -> i8  { self.read_f64() as i8 }
-  fn read_int(&mut self) -> int { self.read_f64() as int }
+  fn read_i64(&mut self) -> i64 {
+    match self.matches.opt_str(self.cur) {
+      None    => self.missing_field(self.cur),
+      Some(s) => match FromStr::from_str(s) {
+        None     => self.expected("i64", self.cur),
+        Some(nb) => nb
+      }
+    }
+  }
+  fn read_i32(&mut self) -> i32 { self.read_i64() as i32 }
+  fn read_i16(&mut self) -> i16 { self.read_i64() as i16 }
+  fn read_i8 (&mut self) -> i8  { self.read_i64() as i8 }
+  fn read_int(&mut self) -> int { self.read_i64() as int }
 
   fn read_f32(&mut self) -> f32 { self.read_f64() as f32 }
   fn read_f64(&mut self) -> f64 {

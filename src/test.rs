@@ -3,6 +3,7 @@ extern crate serialize;
 use decodeopts = lib;
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use serialize::Decodable;
+use std::task;
 
 mod lib;
 
@@ -18,6 +19,19 @@ fn parse_int() {
   let mut decoder = decodeopts::Decoder::new(matches);
   let decoded: ParseInt = Decodable::decode(&mut decoder);
   assert_eq!(decoded.number, 10);
+}
+
+#[test]
+fn parse_not_int() {
+  let opts = ~[reqopt("n", "number", "integer", "")];
+  let matches = getopts([~"-n", ~"10.0"], opts).unwrap();
+  let result = task::try(proc() {
+    let mut decoder = decodeopts::Decoder::new(matches);
+    let decoded: ParseInt = Decodable::decode(&mut decoder);
+    1 as uint
+  });
+  println!("result: {}", result);
+  assert!(result.is_err());
 }
 
 #[deriving(Decodable)]
