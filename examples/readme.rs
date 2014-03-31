@@ -21,7 +21,7 @@ fn main() {
 
   let matches = match getopts(args.tail(), opts) {
     Ok(m) => { m },
-    Err(f) => { fail!(f.to_err_msg()) }
+    Err(f) => { println!("{}", f.to_err_msg()); return; }
   };
 
   let result: DecoderResult<Args> = typedopts::decode(matches);
@@ -30,10 +30,6 @@ fn main() {
       println!("name is {}", decoded.name);
       println!("quantity is {}", decoded.quantity);
     },
-    Err(UnimplementedDecoder) => println!("this function is not implemented"),
-    Err(MissingField(ref s))  => println!("the required field '{}' is not present", s),
-    Err(ExpectedType(ref field, ref expected, ref value)) => {
-      println!("Expected type '{}' for field '{}' but got value '{}'", expected, field, value)
-    }
+    Err(f) => { println!("{}", f.to_err_msg()); return; }
   }
 }

@@ -71,6 +71,17 @@ pub fn decode<T:Send+Decodable<Decoder>>(matches: Matches) -> DecoderResult<T> {
   }
 }
 
+impl ErrorType {
+  pub fn to_err_msg(self) -> ~str {
+    match self {
+      UnimplementedDecoder => format!("this function is not implemented"),
+      MissingField(ref s)  => format!("the required field '{}' is not present", s),
+      ExpectedType(ref field, ref expected, ref value) => {
+        format!("Expected type '{}' for field '{}' but got value '{}'", expected, field, value)
+      }
+    }
+  }
+}
 impl<T:FromStr> Decoder {
   fn get_field<T:FromStr>(&self, field: &str) -> Option<T> {
     match self.matches.opt_str(self.cur) {
