@@ -2,8 +2,8 @@ extern crate getopts;
 extern crate typedopts;
 extern crate serialize;
 
-use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use std::os;
+use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use typedopts::{DecoderResult,UnimplementedDecoder,MissingField,ExpectedType};
 
 #[deriving(Decodable)]
