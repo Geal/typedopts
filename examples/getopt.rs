@@ -5,9 +5,7 @@ extern crate serialize;
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use std::os;
 use serialize::Decodable;
-use std::task;
-use std::any::AnyRefExt;
-use decodeopts::{Error, UnimplementedDecoder,MissingField,ExpectedType};
+use decodeopts::{DecoderResult,UnimplementedDecoder,MissingField,ExpectedType};
 
 #[deriving(Decodable)]
 enum Color {
@@ -61,33 +59,25 @@ fn main() {
     return;
   }
 
-  let result = task::try(proc() {
-    let mut decoder = decodeopts::Decoder::new(matches);
-    let decoded: TestStruct1 = Decodable::decode(&mut decoder);
-
-    println!("got data: s -> {} n -> {}", decoded.data_str, decoded.data_int);
-    match decoded.color {
-      red  => println!("red"),
-      blue => println!("blue")
-    }
-
-    match decoded.maybe {
-      None    => println!("maybe is none"),
-      Some(i) => println!("maybe is {}", i)
-    }
-  });
+  let result: decodeopts::DecoderResult<TestStruct1> = decodeopts::decode(matches);
 
   match result {
-    Ok(a) => println!("everything is ok"),
-    Err(e)      => {
-      let err = e.as_ref::<Error>().unwrap();
-      match err.e {
-        UnimplementedDecoder => println!("this function is not implemented"),
-        MissingField(ref s)  => println!("the required field '{}' is not present", s),
-        ExpectedType(ref field, ref expected, ref value) => {
-          println!("Expected type '{}' for field '{}' but got value '{}'", expected, field, value)
-        }
+    Ok(decoded) => {
+      println!("got data: s -> {} n -> {}", decoded.data_str, decoded.data_int);
+      match decoded.color {
+        red  => println!("red"),
+        blue => println!("blue")
       }
+
+      match decoded.maybe {
+        None    => println!("maybe is none"),
+        Some(i) => println!("maybe is {}", i)
+      }
+    },
+    Err(UnimplementedDecoder) => println!("this function is not implemented"),
+    Err(MissingField(ref s))  => println!("the required field '{}' is not present", s),
+    Err(ExpectedType(ref field, ref expected, ref value)) => {
+      println!("Expected type '{}' for field '{}' but got value '{}'", expected, field, value)
     }
   }
 }
