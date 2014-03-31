@@ -1,11 +1,11 @@
 extern crate getopts;
-extern crate decodeopts;
+extern crate typedopts;
 extern crate serialize;
 
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use std::os;
 use serialize::Decodable;
-use decodeopts::{DecoderResult,UnimplementedDecoder,MissingField,ExpectedType};
+use typedopts::{DecoderResult,UnimplementedDecoder,MissingField,ExpectedType};
 
 #[deriving(Decodable)]
 enum Color {
@@ -59,7 +59,7 @@ fn main() {
     return;
   }
 
-  let result: decodeopts::DecoderResult<TestStruct1> = decodeopts::decode(matches);
+  let result: typedopts::DecoderResult<TestStruct1> = typedopts::decode(matches);
 
   match result {
     Ok(decoded) => {

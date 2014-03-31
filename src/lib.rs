@@ -1,4 +1,4 @@
-#![crate_id = "decodeopts"]
+#![crate_id = "typedopts"]
 #![crate_type = "lib"];
 
 extern crate getopts;
