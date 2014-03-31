@@ -42,7 +42,7 @@ fn main() {
   ];
   let matches = match getopts(args.tail(), opts) {
     Ok(m) => { m }
-    Err(f) => { fail!(f.to_err_msg()) }
+    Err(f) => { println!("{}", f.to_err_msg()); return }
   };
 
   if matches.opt_present("h") {
