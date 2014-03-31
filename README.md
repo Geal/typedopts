@@ -2,10 +2,14 @@
 
 [![Build Status](https://travis-ci.org/Geal/typedopts.png?branch=master)](https://travis-ci.org/Geal/typedopts)
 
+# Rationale
+
 While getopts is available for the Rust platform, it is not very practical,
 since the generated map of properties must be checked for existence,
 then cast to the required types, leading to a lot of options and pattern
 matching.
+
+# Usage
 
 With this library, you can define a structure representing the possible
 parameters, deriving Decodable, and parse it directly:
@@ -59,6 +63,8 @@ you receive an enum of errors:
 
 Unless you want to handle the errors yourself, you can use directly the
 to__err__msg function.
+
+# Examples
 
 Most types can be handled by the library, as long as they can derive from
 Decodable. Integers, Unsigned integers, floating point numbers, booleans,
