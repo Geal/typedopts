@@ -1,5 +1,5 @@
 #![crate_id = "typedopts"]
-#![crate_type = "lib"];
+#![crate_type = "lib"]
 
 extern crate getopts;
 extern crate serialize;
@@ -55,7 +55,7 @@ impl Decoder {
 
 }
 
-pub fn decode<T:Send+Decodable<Decoder>>(matches: Matches) -> DecoderResult<T> {
+pub fn decode<T:Send+Decodable<Decoder, T>>(matches: Matches) -> DecoderResult<T> {
   let result = task::try(proc() {
     let mut decoder = Decoder::new(matches);
     let a:T = Decodable::decode(&mut decoder);
