@@ -4,7 +4,7 @@ extern crate serialize;
 
 use getopts::{reqopt,getopts};
 use std::os;
-use typedopts::{DecoderResult,UnimplementedDecoder,MissingField,ExpectedType};
+use typedopts::{DecodeResult,UnimplementedDecoder,MissingField,ExpectedType};
 
 #[deriving(Decodable)]
 struct Args {
@@ -24,7 +24,7 @@ fn main() {
     Err(f) => { println!("{}", f.to_err_msg()); return; }
   };
 
-  let result: DecoderResult<Args> = typedopts::decode(matches);
+  let result: DecodeResult<Args> = typedopts::decode(matches);
   match result {
     Ok(decoded) => {
       println!("name is {}", decoded.name);
