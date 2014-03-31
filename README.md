@@ -100,7 +100,7 @@ pub struct ParseOption {
 
 /* ... */
 match decoded.option {
-  Some(i) => println!(optional number is {}", i),
+  Some(i) => println!("optional number is {}", i),
   None    => println!("no number was provided")
 }
 ```
