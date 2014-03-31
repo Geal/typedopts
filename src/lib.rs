@@ -6,6 +6,9 @@ extern crate serialize;
 use getopts::Matches;
 use std::from_str::FromStr;
 use std::str::StrSlice;
+use serialize::Decodable;
+use std::task;
+use std::any::AnyOwnExt;
 
 #[deriving(Eq, Show)]
 pub enum ErrorType {
@@ -18,6 +21,8 @@ pub enum ErrorType {
 pub struct Error {
   e: ErrorType
 }
+
+pub type DecoderResult<T> =  Result<T, ErrorType>;
 
 pub struct Decoder {
   priv matches: Matches,
@@ -48,6 +53,22 @@ impl Decoder {
                        self.matches.opt_str(self.cur).unwrap()) });
   }
 
+}
+
+pub fn decode<T:Send+Decodable<Decoder>>(matches: Matches) -> DecoderResult<T> {
+  let result = task::try(proc() {
+    let mut decoder = Decoder::new(matches);
+    let a:T = Decodable::decode(&mut decoder);
+    a
+  });
+
+  match result {
+    Ok(data) => Ok(data),
+    Err(e)   => {
+      let err = e.move::<Error>().unwrap();
+      Err(err.e)
+    }
+  }
 }
 
 impl<T:FromStr> Decoder {

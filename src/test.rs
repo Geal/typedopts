@@ -176,3 +176,29 @@ fn parse_struct_optenum() {
   assert_eq!(decoded.optuint, None);
   assert_eq!(decoded.optenum, Some(Green));
 }
+
+#[test]
+fn decode_task_ok() {
+  let opts = ~[reqopt("s", "string", "string", ""),
+               optopt("u", "optuint", "Option<uint>", ""),
+               optopt("c", "optenum", "Option<Color>", "")];
+  let matches = getopts([~"-s", ~"abcd"], opts).unwrap();
+  let result = decodeopts::decode(matches);
+  assert!(result.is_ok());
+  let decoded: ParseStruct = result.unwrap();
+  assert_eq!(decoded.string, ~"abcd");
+  assert_eq!(decoded.optuint, None);
+  assert_eq!(decoded.optenum, None);
+}
+
+#[test]
+fn decode_task_err() {
+  let opts = ~[optopt("s", "string", "string", ""),
+               optopt("u", "optuint", "Option<uint>", ""),
+               optopt("c", "optenum", "Option<Color>", "")];
+  let matches = getopts([~"-u", ~"1"], opts).unwrap();
+  let result: decodeopts::DecoderResult<ParseStruct> = decodeopts::decode(matches);
+  assert!(result.is_err());
+  let err = result.unwrap_err();
+  assert_eq!(err, MissingField(~"string"));
+}
