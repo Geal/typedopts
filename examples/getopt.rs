@@ -4,7 +4,6 @@ extern crate serialize;
 
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use std::os;
-use serialize::Decodable;
 use typedopts::{DecoderResult,UnimplementedDecoder,MissingField,ExpectedType};
 
 #[deriving(Decodable)]
@@ -14,19 +13,11 @@ enum Color {
 }
 
 #[deriving(Decodable)]
-pub struct TestStruct1  {
+struct TestStruct1  {
   data_int: u8,
   data_str: ~str,
   color: Color,
   maybe: Option<int>
-}
-
-fn do_work(inp: &str, out: Option<~str>) {
-    println!("{}", inp);
-    match out {
-        Some(x) => println!("{}", x),
-        None => println!("No Output"),
-    }
 }
 
 fn print_usage(program: &str, _opts: &[OptGroup]) {
