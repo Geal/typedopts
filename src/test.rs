@@ -134,18 +134,36 @@ fn parse_none_option() {
   let decoded: ParseOption = Decodable::decode(&mut decoder);
   assert_eq!(decoded.option, None);
 }
-/*
+
 #[deriving(Decodable)]
-pub struct ParseString {
-  string: ~str
+pub struct ParseStruct {
+  string: ~str,
+  optuint: Option<uint>,
+  optenum: Option<Color>
 }
 
 #[test]
-fn parse_string() {
-  let opts = ~[reqopt("s", "string", "string", "")];
-  let matches = getopts(~[~"-s", ~"abcd"], opts).unwrap();
+fn parse_struct_noopt() {
+  let opts = ~[reqopt("s", "string", "string", ""),
+               optopt("u", "optuint", "Option<uint>", ""),
+               optopt("c", "optenum", "Option<Color>", "")];
+  let matches = getopts([~"-s", ~"abcd"], opts).unwrap();
   let mut decoder = decodeopts::Decoder::new(matches);
-  let decoded: ParseString = Decodable::decode(&mut decoder);
+  let decoded: ParseStruct = Decodable::decode(&mut decoder);
   assert_eq!(decoded.string, ~"abcd");
+  assert_eq!(decoded.optuint, None);
+  assert_eq!(decoded.optenum, None);
 }
-*/
+
+#[test]
+fn parse_struct_optenum() {
+  let opts = ~[reqopt("s", "string", "string", ""),
+               optopt("u", "optuint", "Option<uint>", ""),
+               optopt("c", "optenum", "Option<Color>", "")];
+  let matches = getopts([~"-s", ~"abcd", ~"-c", ~"Green"], opts).unwrap();
+  let mut decoder = decodeopts::Decoder::new(matches);
+  let decoded: ParseStruct = Decodable::decode(&mut decoder);
+  assert_eq!(decoded.string, ~"abcd");
+  assert_eq!(decoded.optuint, None);
+  assert_eq!(decoded.optenum, Some(Green));
+}

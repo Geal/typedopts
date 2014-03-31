@@ -120,13 +120,13 @@ impl serialize::Decoder for Decoder {
   }
 
   fn read_enum<T>(&mut self, name: &str, f: |&mut Decoder| -> T) -> T {
-    println!("reading enum: {}", name);
+    //println!("reading enum: {}", name);
     self.current_type = name.to_owned();
     f(self)
   }
 
   fn read_enum_variant<T>(&mut self, names: &[&str], f: |&mut Decoder, uint| -> T) -> T {
-    println!("reading enum variant({}): {}", self.cur, names);
+    //println!("reading enum variant({}): {}", self.cur, names);
     match self.matches.opt_str(self.cur) {
       None    => self.missing_field(self.cur),
       Some(s) => match names.iter().position(|&e| e == s) {
@@ -138,31 +138,31 @@ impl serialize::Decoder for Decoder {
   }
 
   fn read_enum_variant_arg<T>(&mut self, a_idx: uint, f: |&mut Decoder| -> T) -> T {
-    println!("reading enum variant_arg: {}", a_idx);
+    //println!("reading enum variant_arg: {}", a_idx);
     f(self);
     self.unimplemented()
   }
 
   fn read_enum_struct_variant<T>(&mut self, names: &[&str], f: |&mut Decoder, uint| -> T) -> T {
-    println!("reading enum struct variant: {}", names);
+    //println!("reading enum struct variant: {}", names);
     f(self, 0);
     self.unimplemented()
   }
 
   fn read_enum_struct_variant_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut Decoder| -> T) -> T {
-    println!("reading enum struct variant field: {}, {}", f_name, f_idx);
+    //println!("reading enum struct variant field: {}, {}", f_name, f_idx);
     f(self);
     self.unimplemented()
   }
 
   fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut Decoder| -> T) -> T {
-    println!("reading struct: {} | len = {}", s_name, len);
+    //println!("reading struct: {} | len = {}", s_name, len);
     self.cur = s_name.to_owned();
     f(self)
   }
 
   fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut Decoder| -> T) -> T {
-    println!("reading struct field: {} | idx = {}", f_name, f_idx);
+    //println!("reading struct field: {} | idx = {}", f_name, f_idx);
     self.cur = f_name.to_owned();
     let data = f(self);
     //println!("got struct field data: {}", data);
@@ -170,10 +170,16 @@ impl serialize::Decoder for Decoder {
   }
 
   fn read_option<T>(&mut self, f: |&mut Decoder, bool| -> T) -> T {
-    println!("read_option");
+    //println!("read_option");
     match self.matches.opt_str(self.cur) {
-      None    => {println!("option not there");f(self, false)},
-      Some(s) => {println!("option is there");f(self, true)}
+      None    => {
+        //println!("option not there");
+        f(self, false)
+      },
+      Some(s) => {
+        //println!("option is there");
+        f(self, true)
+      }
     }
     //f(self, true);
     //self.unimplemented()
