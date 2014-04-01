@@ -23,9 +23,9 @@ pub struct Error {
 pub type DecodeResult<T> =  Result<T, ErrorType>;
 
 pub struct Decoder {
-  priv matches: Matches,
-  priv cur: ~str,
-  priv current_type: ~str
+  matches: Matches,
+  cur: ~str,
+  current_type: ~str
 }
 
 impl Decoder {
