@@ -8,14 +8,14 @@ use std::from_str::FromStr;
 use std::str::StrSlice;
 use serialize::Decodable;
 
-#[deriving(Eq, Show)]
+#[deriving(PartialEq, Eq, Show)]
 pub enum ErrorType {
   UnimplementedDecoder,
-  MissingField(~str),
-  ExpectedType(~str, ~str, ~str)
+  MissingField(String),
+  ExpectedType(String, String, String)
 }
 
-#[deriving(Eq, Show)]
+#[deriving(PartialEq, Eq, Show)]
 pub struct Error {
   e: ErrorType
 }
@@ -24,23 +24,23 @@ pub type DecodeResult<T> =  Result<T, ErrorType>;
 
 pub struct Decoder {
   matches: Matches,
-  cur: ~str,
-  current_type: ~str
+  cur: String,
+  current_type: String
 }
 
 impl Decoder {
   pub fn new(matches: Matches) -> Decoder {
     Decoder {
       matches: matches,
-      cur: ~"",
-      current_type: ~""
+      cur: "".to_string(),
+      current_type: "".to_string()
     }
   }
 
-  fn expected(&self, expected_type: &str) -> ErrorType {
+  fn expected(&self, expected_type: String) -> ErrorType {
     ExpectedType(self.cur.to_owned(),
                        expected_type.to_owned(),
-                       self.matches.opt_str(self.cur).unwrap())
+                       self.matches.opt_str(self.cur.as_slice()).unwrap())
   }
 
 }
@@ -51,7 +51,7 @@ pub fn decode<T:Send+Decodable<Decoder, ErrorType>>(matches: Matches) -> DecodeR
 }
 
 impl ErrorType {
-  pub fn to_err_msg(self) -> ~str {
+  pub fn to_err_msg(self) -> String {
     match self {
       UnimplementedDecoder => format!("this function is not implemented"),
       MissingField(ref s)  => format!("the required field '{}' is not present", s),
@@ -63,9 +63,9 @@ impl ErrorType {
 }
 impl<T:FromStr> Decoder {
   fn get_field<T:FromStr>(&self, field: &str) -> Option<T> {
-    match self.matches.opt_str(self.cur) {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => None,
-      Some(s) => FromStr::from_str(s)
+      Some(s) => FromStr::from_str(s.as_slice())
     }
   }
 }
@@ -77,10 +77,10 @@ impl serialize::Decoder<ErrorType> for Decoder {
   }
 
   fn read_u64(&mut self)  -> DecodeResult<u64>  {
-    match self.matches.opt_str(self.cur) {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s) {
-        None     => Err(self.expected(~"u64")),
+      Some(s) => match FromStr::from_str(s.as_slice()) {
+        None     => Err(self.expected("u64".to_string())),
         Some(nb) => Ok(nb)
       }
     }
@@ -91,10 +91,10 @@ impl serialize::Decoder<ErrorType> for Decoder {
   fn read_uint(&mut self) -> DecodeResult<uint> { Ok(try!(self.read_u64()) as uint) }
 
   fn read_i64(&mut self) -> DecodeResult<i64> {
-    match self.matches.opt_str(self.cur) {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s) {
-        None     => Err(self.expected(~"i64")),
+      Some(s) => match FromStr::from_str(s.as_slice()) {
+        None     => Err(self.expected("i64".to_string())),
         Some(nb) => Ok(nb)
       }
     }
@@ -106,34 +106,34 @@ impl serialize::Decoder<ErrorType> for Decoder {
 
   fn read_f32(&mut self) -> DecodeResult<f32> { Ok(try!(self.read_f64()) as f32) }
   fn read_f64(&mut self) -> DecodeResult<f64> {
-    match self.matches.opt_str(self.cur) {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s) {
-        None     => Err(self.expected(~"f64")),
+      Some(s) => match FromStr::from_str(s.as_slice()) {
+        None     => Err(self.expected("f64".to_string())),
         Some(nb) => Ok(nb)
       }
     }
   }
 
   fn read_bool(&mut self) -> DecodeResult<bool> {
-    match self.matches.opt_str(self.cur) {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s) {
-        None     => Err(self.expected("boolean")),
+      Some(s) => match FromStr::from_str(s.as_slice()) {
+        None     => Err(self.expected("boolean".to_string())),
         Some(b) => Ok(b)
       }
     }
   }
 
   fn read_char(&mut self) -> DecodeResult<char> {
-    match self.matches.opt_str(self.cur) {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(MissingField(self.cur.clone())),
-      Some(s) => if s.char_len() == 1 { Ok(s.char_at(0)) } else { Err(self.expected("char")) }
+      Some(s) => if s.as_slice().char_len() == 1 { Ok(s.as_slice().char_at(0)) } else { Err(self.expected("char".to_string())) }
     }
   }
 
-  fn read_str(&mut self) -> DecodeResult<~str> {
-    match self.matches.opt_str(self.cur) {
+  fn read_str(&mut self) -> DecodeResult<String> {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(MissingField(self.cur.clone())),
       Some(s) => Ok(s)
     }
@@ -147,10 +147,10 @@ impl serialize::Decoder<ErrorType> for Decoder {
 
   fn read_enum_variant<T>(&mut self, names: &[&str], f: |&mut Decoder, uint| -> DecodeResult<T>) -> DecodeResult<T> {
     //println!("reading enum variant({}): {}", self.cur, names);
-    match self.matches.opt_str(self.cur) {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(MissingField(self.cur.clone())),
-      Some(s) => match names.iter().position(|&e| e == s) {
-        None    => Err(self.expected(self.current_type + " enum")),
+      Some(s) => match names.iter().position(|&e| e == s.as_slice()) {
+        None    => Err(self.expected(self.current_type.clone().append(" enum"))),
         Some(i) => f(self, i)
       }
     }
@@ -190,7 +190,7 @@ impl serialize::Decoder<ErrorType> for Decoder {
 
   fn read_option<T>(&mut self, f: |&mut Decoder, bool| -> DecodeResult<T>) -> DecodeResult<T> {
     //println!("read_option");
-    match self.matches.opt_str(self.cur) {
+    match self.matches.opt_str(self.cur.as_slice()) {
       None    => {
         //println!("option not there");
         f(self, false)
