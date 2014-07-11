@@ -38,8 +38,8 @@ impl Decoder {
   }
 
   fn expected(&self, expected_type: String) -> ErrorType {
-    ExpectedType(self.cur.to_owned(),
-                       expected_type.to_owned(),
+    ExpectedType(self.cur.to_string(),
+                       expected_type.to_string(),
                        self.matches.opt_str(self.cur.as_slice()).unwrap())
   }
 
@@ -141,7 +141,7 @@ impl serialize::Decoder<ErrorType> for Decoder {
 
   fn read_enum<T>(&mut self, name: &str, f: |&mut Decoder| -> DecodeResult<T>) -> DecodeResult<T> {
     //println!("reading enum: {}", name);
-    self.current_type = name.to_owned();
+    self.current_type = name.to_string();
     f(self)
   }
 
@@ -176,13 +176,13 @@ impl serialize::Decoder<ErrorType> for Decoder {
 
   fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut Decoder| -> DecodeResult<T>) -> DecodeResult<T> {
     //println!("reading struct: {} | len = {}", s_name, len);
-    self.cur = s_name.to_owned();
+    self.cur = s_name.to_string();
     f(self)
   }
 
   fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut Decoder| -> DecodeResult<T>) -> DecodeResult<T> {
     //println!("reading struct field: {} | idx = {}", f_name, f_idx);
-    self.cur = f_name.to_owned();
+    self.cur = f_name.to_string();
     let data = f(self);
     //println!("got struct field data: {}", data);
     data
@@ -195,7 +195,7 @@ impl serialize::Decoder<ErrorType> for Decoder {
         //println!("option not there");
         f(self, false)
       },
-      Some(s) => {
+      Some(_) => {
         //println!("option is there");
         f(self, true)
       }
