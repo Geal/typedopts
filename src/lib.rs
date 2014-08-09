@@ -12,7 +12,8 @@ use serialize::Decodable;
 pub enum ErrorType {
   UnimplementedDecoder,
   MissingField(String),
-  ExpectedType(String, String, String)
+  ExpectedType(String, String, String),
+  GenericError(String)
 }
 
 #[deriving(PartialEq, Eq, Show)]
@@ -57,7 +58,8 @@ impl ErrorType {
       MissingField(ref s)  => format!("the required field '{}' is not present", s),
       ExpectedType(ref field, ref expected, ref value) => {
         format!("Expected type '{}' for field '{}' but got value '{}'", expected, field, value)
-      }
+      },
+      GenericError(ref s)  => format!("generic error: {}", s)
     }
   }
 }
@@ -247,4 +249,7 @@ impl serialize::Decoder<ErrorType> for Decoder {
     Err(UnimplementedDecoder)
   }
 
+  fn error(&mut self, err: &str) -> ErrorType {
+    GenericError(err.to_string())
+  }
 }
