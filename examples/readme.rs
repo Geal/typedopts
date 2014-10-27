@@ -8,13 +8,13 @@ use typedopts::{DecodeResult,UnimplementedDecoder,MissingField,ExpectedType};
 
 #[deriving(Decodable)]
 struct Args {
-  name:     ~str,
+  name:     String,
   quantity: uint
 }
 
 fn main() {
   let args = os::args();
-  let opts = ~[
+  let opts = [
     reqopt("n", "name", "insert a name here", ""),
     reqopt("q", "quantity", "insert a quantity here", "")
   ];

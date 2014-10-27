@@ -2,13 +2,10 @@ extern crate getopts;
 extern crate serialize;
 extern crate typedopts;
 
-//use typedopts = lib;
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use serialize::Decodable;
 use typedopts::{Error,DecodeResult,UnimplementedDecoder,MissingField,ExpectedType};
 use std::vec::Vec;
-
-mod lib;
 
 #[deriving(Decodable,PartialEq,Eq,Show)]
 struct ParseInt {

@@ -4,7 +4,7 @@ extern crate serialize;
 
 use std::os;
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
-use typedopts::{DecodeResult,UnimplementedDecoder,MissingField,ExpectedType};
+use typedopts::{DecodeResult,UnimplementedDecoder,MissingField,ExpectedType, GenericError};
 
 #[deriving(Decodable)]
 enum Color {
@@ -15,7 +15,7 @@ enum Color {
 #[deriving(Decodable)]
 struct TestStruct1  {
   data_int: u8,
-  data_str: ~str,
+  data_str: String,
   color: Color,
   maybe: Option<int>
 }
@@ -32,7 +32,7 @@ fn main() {
 
   let program = args[0].clone();
 
-  let opts = ~[
+  let opts = [
     optopt("o", "", "set output file name", "NAME"),
     reqopt("d", "data_int", "number", "NB"),
     reqopt("s", "data_str", "str", "NB"),
@@ -46,7 +46,7 @@ fn main() {
   };
 
   if matches.opt_present("h") {
-    print_usage(program, opts);
+    print_usage(program.as_slice(), opts);
     return;
   }
 
@@ -69,6 +69,7 @@ fn main() {
     Err(MissingField(ref s))  => println!("the required field '{}' is not present", s),
     Err(ExpectedType(ref field, ref expected, ref value)) => {
       println!("Expected type '{}' for field '{}' but got value '{}'", expected, field, value)
-    }
+    },
+    Err(GenericError(_)) => println!("generic error")
   }
 }

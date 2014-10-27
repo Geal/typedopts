@@ -152,7 +152,11 @@ impl serialize::Decoder<ErrorType> for Decoder {
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(MissingField(self.cur.clone())),
       Some(s) => match names.iter().position(|&e| e == s.as_slice()) {
-        None    => Err(self.expected(self.current_type.clone().append(" enum"))),
+        None    => {
+          let mut s = self.current_type.clone();
+          s.push_str(" enum");
+          Err(self.expected(s))
+        },
         Some(i) => f(self, i)
       }
     }
