@@ -185,7 +185,7 @@ fn decode_task_err() {
   let opts = vec!(optopt("s", "string", "string", ""),
                optopt("u", "optuint", "Option<uint>", ""),
                optopt("c", "optenum", "Option<Color>", ""));
-  let matches = getopts(vec!("-u".to_string(), "1".to_string()).as_slice(), opts.as_slice()).unwrap();
+  let matches = getopts(&vec!("-u".to_string(), "1".to_string())[], &opts[]).unwrap();
   let result: typedopts::DecodeResult<ParseStruct> = typedopts::decode(matches);
   assert!(result.is_err());
   let err = result.unwrap_err();

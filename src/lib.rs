@@ -1,4 +1,3 @@
-#![crate_id = "typedopts"]
 #![crate_type = "lib"]
 
 extern crate core;
@@ -163,7 +162,7 @@ impl serialize::Decoder for Decoder {
     }
   }
 
-  fn read_enum_variant_arg<T, F>(&mut self, a_idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
+  fn read_enum_variant_arg<T, F>(&mut self, a_idx: usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading enum variant_arg: {}", a_idx);
     f(self);
     Err(ErrorType::UnimplementedDecoder)
@@ -175,19 +174,19 @@ impl serialize::Decoder for Decoder {
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_enum_struct_variant_field<T, F>(&mut self, f_name: &str, f_idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
+  fn read_enum_struct_variant_field<T, F>(&mut self, f_name: &str, f_idx: usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading enum struct variant field: {}, {}", f_name, f_idx);
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_struct<T, F>(&mut self, s_name: &str, len: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
+  fn read_struct<T, F>(&mut self, s_name: &str, len: usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading struct: {} | len = {}", s_name, len);
     self.cur = s_name.to_string();
     f(self)
   }
 
-  fn read_struct_field<T, F>(&mut self, f_name: &str, f_idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
+  fn read_struct_field<T, F>(&mut self, f_name: &str, f_idx: usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading struct field: {} | idx = {}", f_name, f_idx);
     self.cur = f_name.to_string();
     let data = f(self);
@@ -225,7 +224,7 @@ impl serialize::Decoder for Decoder {
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_tuple_struct_arg<T, F>(&mut self, a_idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
+  fn read_tuple_struct_arg<T, F>(&mut self, a_idx: usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
@@ -236,7 +235,7 @@ impl serialize::Decoder for Decoder {
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_seq_elt<T, F>(&mut self, idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
+  fn read_seq_elt<T, F>(&mut self, idx: usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
@@ -246,12 +245,12 @@ impl serialize::Decoder for Decoder {
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_map_elt_key<T, F>(&mut self, idx: uint, f: F) -> DecodeResult<T> where F:FnOnce(&mut Decoder) -> DecodeResult<T> {
+  fn read_map_elt_key<T, F>(&mut self, idx: usize, f: F) -> DecodeResult<T> where F:FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_map_elt_val<T, F>(&mut self, idx: uint, f: F) -> DecodeResult<T> where F:FnOnce(&mut Decoder) -> DecodeResult<T> {
+  fn read_map_elt_val<T, F>(&mut self, idx: usize, f: F) -> DecodeResult<T> where F:FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
