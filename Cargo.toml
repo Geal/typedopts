@@ -3,4 +3,4 @@
 name = "typedopts"
 version = "0.0.1"
 authors = ["Geoffroy Couprie <contact@geoffroycouprie.com>"]
-
+description = "Type aware command line parser"
