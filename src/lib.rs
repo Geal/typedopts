@@ -8,8 +8,10 @@ use getopts::Matches;
 use core::str::FromStr;
 //use std::str::StrSlice;
 use serialize::Decodable;
+use std::num;
+use std::result::Result;
 
-#[deriving(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Show)]
 pub enum ErrorType {
   UnimplementedDecoder,
   MissingField(String),
@@ -17,7 +19,7 @@ pub enum ErrorType {
   GenericError(String)
 }
 
-#[deriving(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Show)]
 pub struct Error {
   e: ErrorType
 }
@@ -47,7 +49,7 @@ impl Decoder {
 
 }
 
-pub fn decode<T:Send+Decodable<Decoder, ErrorType>>(matches: Matches) -> DecodeResult<T> {
+pub fn decode<T:Send+Decodable>(matches: Matches) -> DecodeResult<T> {
   let mut decoder = Decoder::new(matches);
   Decodable::decode(&mut decoder)
 }
@@ -64,7 +66,7 @@ impl ErrorType {
     }
   }
 }
-impl<T:FromStr> Decoder {
+impl Decoder {
   fn get_field<T:FromStr>(&self, field: &str) -> Option<T> {
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => None,
@@ -73,41 +75,39 @@ impl<T:FromStr> Decoder {
   }
 }
 
-impl serialize::Decoder<ErrorType> for Decoder {
+macro_rules! read_primitive {
+    ($name:ident, $ty:ty) => {
+        fn $name(&mut self) -> DecodeResult<$ty> {
+          match self.matches.opt_str(self.cur.as_slice()) {
+            None    => Err(ErrorType::MissingField(self.cur.clone())),
+            Some(s) => match FromStr::from_str(s.as_slice()) {
+              None     => Err(self.expected("u64".to_string())),
+              Some(nb) => Ok(nb)
+            }
+          }
+        }
+    }
+}
+
+impl serialize::Decoder for Decoder {
+  type Error = ErrorType;
 
   fn read_nil(&mut self) -> DecodeResult<()> {
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_u64(&mut self)  -> DecodeResult<u64>  {
-    match self.matches.opt_str(self.cur.as_slice()) {
-      None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s.as_slice()) {
-        None     => Err(self.expected("u64".to_string())),
-        Some(nb) => Ok(nb)
-      }
-    }
-  }
-  fn read_u32(&mut self)  -> DecodeResult<u32>  { Ok(try!(self.read_u64()) as u32) }
-  fn read_u16(&mut self)  -> DecodeResult<u16>  { Ok(try!(self.read_u64()) as u16) }
-  fn read_u8 (&mut self)  -> DecodeResult<u8>   { Ok(try!(self.read_u64()) as u8) }
-  fn read_uint(&mut self) -> DecodeResult<uint> { Ok(try!(self.read_u64()) as uint) }
+  read_primitive! { read_uint, uint }
+  read_primitive! { read_u8, u8 }
+  read_primitive! { read_u16, u16 }
+  read_primitive! { read_u32, u32 }
+  read_primitive! { read_u64, u64 }
+  read_primitive! { read_int, int }
+  read_primitive! { read_i8, i8 }
+  read_primitive! { read_i16, i16 }
+  read_primitive! { read_i32, i32 }
+  read_primitive! { read_i64, i64 }
 
-  fn read_i64(&mut self) -> DecodeResult<i64> {
-    match self.matches.opt_str(self.cur.as_slice()) {
-      None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s.as_slice()) {
-        None     => Err(self.expected("i64".to_string())),
-        Some(nb) => Ok(nb)
-      }
-    }
-  }
-  fn read_i32(&mut self) -> DecodeResult<i32> { Ok(try!(self.read_i64()) as i32) }
-  fn read_i16(&mut self) -> DecodeResult<i16> { Ok(try!(self.read_i64()) as i16) }
-  fn read_i8 (&mut self) -> DecodeResult<i8>  { Ok(try!(self.read_i64()) as i8) }
-  fn read_int(&mut self) -> DecodeResult<int> { Ok(try!(self.read_i64()) as int) }
-
-  fn read_f32(&mut self) -> DecodeResult<f32> { Ok(try!(self.read_f64()) as f32) }
+  fn read_f32(&mut self) -> DecodeResult<f32> { self.read_f64().map(|x| x as f32) }
   fn read_f64(&mut self) -> DecodeResult<f64> {
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
@@ -131,7 +131,7 @@ impl serialize::Decoder<ErrorType> for Decoder {
   fn read_char(&mut self) -> DecodeResult<char> {
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => if s.as_slice().char_len() == 1 { Ok(s.as_slice().char_at(0)) } else { Err(self.expected("char".to_string())) }
+      Some(s) => if s.as_slice().chars().count() == 1 { Ok(s.as_slice().char_at(0)) } else { Err(self.expected("char".to_string())) }
     }
   }
 
@@ -142,13 +142,13 @@ impl serialize::Decoder<ErrorType> for Decoder {
     }
   }
 
-  fn read_enum<T>(&mut self, name: &str, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_enum<T, F>(&mut self, name: &str, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading enum: {}", name);
     self.current_type = name.to_string();
     f(self)
   }
 
-  fn read_enum_variant<T>(&mut self, names: &[&str], f: Fn(&mut Decoder, uint) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_enum_variant<T, F>(&mut self, names: &[&str], f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder, usize) -> DecodeResult<T> {
     //println!("reading enum variant({}): {}", self.cur, names);
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
@@ -163,31 +163,31 @@ impl serialize::Decoder<ErrorType> for Decoder {
     }
   }
 
-  fn read_enum_variant_arg<T>(&mut self, a_idx: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_enum_variant_arg<T, F>(&mut self, a_idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading enum variant_arg: {}", a_idx);
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_enum_struct_variant<T>(&mut self, names: &[&str], f: Fn(&mut Decoder, uint) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_enum_struct_variant<T, F>(&mut self, names: &[&str], f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder, usize) -> DecodeResult<T> {
     //println!("reading enum struct variant: {}", names);
     f(self, 0);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_enum_struct_variant_field<T>(&mut self, f_name: &str, f_idx: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_enum_struct_variant_field<T, F>(&mut self, f_name: &str, f_idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading enum struct variant field: {}, {}", f_name, f_idx);
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_struct<T>(&mut self, s_name: &str, len: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_struct<T, F>(&mut self, s_name: &str, len: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading struct: {} | len = {}", s_name, len);
     self.cur = s_name.to_string();
     f(self)
   }
 
-  fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_struct_field<T, F>(&mut self, f_name: &str, f_idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     //println!("reading struct field: {} | idx = {}", f_name, f_idx);
     self.cur = f_name.to_string();
     let data = f(self);
@@ -195,7 +195,8 @@ impl serialize::Decoder<ErrorType> for Decoder {
     data
   }
 
-  fn read_option<T>(&mut self, f: Fn(&mut Decoder, bool) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_option<T, F>(&mut self, mut f: F) -> DecodeResult<T> where F: FnMut(&mut Decoder, bool) -> DecodeResult<T>
+   {
     //println!("read_option");
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => {
@@ -209,47 +210,48 @@ impl serialize::Decoder<ErrorType> for Decoder {
     }
   }
 
-  fn read_tuple<T>(&mut self, f: Fn(&mut Decoder, uint) -> DecodeResult<T>) -> DecodeResult<T> {
-    f(self, 0);
-    Err(ErrorType::UnimplementedDecoder)
-  }
-
-  fn read_tuple_arg<T>(&mut self, a_idx: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_tuple<T, F>(&mut self,  tuple_len: usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_tuple_struct<T>(&mut self, s_name: &str, f: Fn(&mut Decoder, uint) -> DecodeResult<T>) -> DecodeResult<T> {
-    f(self, 0);
-    Err(ErrorType::UnimplementedDecoder)
-  }
-
-  fn read_tuple_struct_arg<T>(&mut self, a_idx: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_tuple_arg<T, F>(&mut self, a_idx: usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_seq<T>(&mut self, f: Fn(&mut Decoder, uint) -> DecodeResult<T>) -> DecodeResult<T> {
-    f(self, 0);
-    Err(ErrorType::UnimplementedDecoder)
-  }
-
-  fn read_seq_elt<T>(&mut self, idx: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_tuple_struct<T, F>(&mut self, s_name: &str, len:usize, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_map<T>(&mut self, f: Fn(&mut Decoder, uint) -> DecodeResult<T>) -> DecodeResult<T> {
-    f(self, 0);
-    Err(ErrorType::UnimplementedDecoder)
-  }
-
-  fn read_map_elt_key<T>(&mut self, idx: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_tuple_struct_arg<T, F>(&mut self, a_idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  fn read_map_elt_val<T>(&mut self, idx: uint, f: Fn(&mut Decoder) -> DecodeResult<T>) -> DecodeResult<T> {
+  fn read_seq<T, F>(&mut self, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder, usize) -> DecodeResult<T>
+   {
+    f(self, 0);
+    Err(ErrorType::UnimplementedDecoder)
+  }
+
+  fn read_seq_elt<T, F>(&mut self, idx: uint, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder) -> DecodeResult<T> {
+    f(self);
+    Err(ErrorType::UnimplementedDecoder)
+  }
+
+  fn read_map<T, F>(&mut self, f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder, usize) -> DecodeResult<T> {
+    f(self, 0);
+    Err(ErrorType::UnimplementedDecoder)
+  }
+
+  fn read_map_elt_key<T, F>(&mut self, idx: uint, f: F) -> DecodeResult<T> where F:FnOnce(&mut Decoder) -> DecodeResult<T> {
+    f(self);
+    Err(ErrorType::UnimplementedDecoder)
+  }
+
+  fn read_map_elt_val<T, F>(&mut self, idx: uint, f: F) -> DecodeResult<T> where F:FnOnce(&mut Decoder) -> DecodeResult<T> {
     f(self);
     Err(ErrorType::UnimplementedDecoder)
   }

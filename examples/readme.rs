@@ -4,9 +4,9 @@ extern crate serialize;
 
 use getopts::{reqopt,getopts};
 use std::os;
-use typedopts::{DecodeResult,UnimplementedDecoder,MissingField,ExpectedType};
+use typedopts::{DecodeResult,ErrorType};
 
-#[deriving(Decodable)]
+#[derive(Decodable)]
 struct Args {
   name:     String,
   quantity: uint
@@ -14,12 +14,12 @@ struct Args {
 
 fn main() {
   let args = os::args();
-  let opts = [
+  let opts = vec!(
     reqopt("n", "name", "insert a name here", ""),
     reqopt("q", "quantity", "insert a quantity here", "")
-  ];
+  );
 
-  let matches = match getopts(args.tail(), opts) {
+  let matches = match getopts(args.tail(), opts.as_slice()) {
     Ok(m) => { m },
     Err(f) => { println!("{}", f.to_err_msg()); return; }
   };
