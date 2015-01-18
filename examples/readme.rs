@@ -1,12 +1,13 @@
 extern crate getopts;
 extern crate typedopts;
-extern crate serialize;
 
+extern crate "rustc-serialize" as rustc_serialize;
 use getopts::{reqopt,getopts};
 use std::os;
 use typedopts::{DecodeResult,ErrorType};
+use rustc_serialize::Decodable;
 
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 struct Args {
   name:     String,
   quantity: uint

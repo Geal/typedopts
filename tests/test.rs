@@ -1,13 +1,13 @@
 extern crate getopts;
-extern crate serialize;
 extern crate typedopts;
 
+extern crate "rustc-serialize" as rustc_serialize;
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
-use serialize::Decodable;
+use rustc_serialize::Decodable;
 use typedopts::{Error,ErrorType,DecodeResult};
 use std::vec::Vec;
 
-#[derive(Decodable,PartialEq,Eq,Show)]
+#[derive(RustcDecodable,PartialEq,Eq,Show)]
 struct ParseInt {
   number: uint
 }
@@ -30,7 +30,7 @@ fn parse_not_int() {
   assert_eq!(result, Err(ErrorType::ExpectedType("number".to_string(), "u64".to_string(), "10.0".to_string())));
 }
 
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 struct ParseFloat {
   number: f32
 }
@@ -43,7 +43,7 @@ fn parse_float() {
   let decoded: ParseFloat = Decodable::decode(&mut decoder).unwrap();
   assert_eq!(decoded.number, 10.0);
 }
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 struct ParseBoolean {
   boolean: bool
 }
@@ -58,7 +58,7 @@ fn parse_bool() {
 }
 
 
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 struct ParseChar {
   character: char
 }
@@ -72,7 +72,7 @@ fn parse_char() {
   assert_eq!(decoded.character, 'a');
 }
 
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 struct ParseString {
   string: String
 }
@@ -86,14 +86,14 @@ fn parse_string() {
   assert_eq!(decoded.string, "abcd".to_string());
 }
 
-#[derive(Decodable, PartialEq, Eq, Show)]
+#[derive(RustcDecodable, PartialEq, Eq, Show)]
 enum Color {
   Red,
   Blue,
   Green
 }
 
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 struct ParseEnum {
   color: Color
 }
@@ -108,7 +108,7 @@ fn parse_enum() {
 }
 
 
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 struct ParseOption {
   option: Option<uint>
 }
@@ -131,7 +131,7 @@ fn parse_none_option() {
   assert_eq!(decoded.option, None);
 }
 
-#[derive(Decodable, Show)]
+#[derive(RustcDecodable, Show)]
 struct ParseStruct {
   string: String,
   optuint: Option<uint>,

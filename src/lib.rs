@@ -2,11 +2,12 @@
 
 extern crate core;
 extern crate getopts;
-extern crate serialize;
+extern crate "rustc-serialize" as rustc_serialize;
+
 use getopts::Matches;
 use core::str::FromStr;
 //use std::str::StrSlice;
-use serialize::Decodable;
+use rustc_serialize::Decodable;
 use std::num;
 use std::result::Result;
 
@@ -88,19 +89,19 @@ macro_rules! read_primitive {
     }
 }
 
-impl serialize::Decoder for Decoder {
+impl rustc_serialize::Decoder for Decoder {
   type Error = ErrorType;
 
   fn read_nil(&mut self) -> DecodeResult<()> {
     Err(ErrorType::UnimplementedDecoder)
   }
 
-  read_primitive! { read_uint, uint }
+  read_primitive! { read_usize, usize }
   read_primitive! { read_u8, u8 }
   read_primitive! { read_u16, u16 }
   read_primitive! { read_u32, u32 }
   read_primitive! { read_u64, u64 }
-  read_primitive! { read_int, int }
+  read_primitive! { read_isize, isize }
   read_primitive! { read_i8, i8 }
   read_primitive! { read_i16, i16 }
   read_primitive! { read_i32, i32 }

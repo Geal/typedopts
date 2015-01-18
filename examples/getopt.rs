@@ -1,18 +1,19 @@
 extern crate getopts;
 extern crate typedopts;
-extern crate serialize;
+extern crate "rustc-serialize" as rustc_serialize;
 
 use std::os;
 use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
 use typedopts::{DecodeResult,ErrorType};
+use rustc_serialize::Decodable;
 
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 enum Color {
   red,
   blue
 }
 
-#[derive(Decodable)]
+#[derive(RustcDecodable)]
 struct TestStruct1  {
   data_int: u8,
   data_str: String,
