@@ -18,26 +18,26 @@ parameters, deriving Decodable, and parse it directly:
 ```Rust
 extern crate getopts;
 extern crate typedopts;
-extern crate serialize;
 
-use getopts::{reqopt,getopts};
+extern crate "rustc-serialize" as rustc_serialize;
+use getopts::Options;
 use std::os;
-use typedopts::{DecodeResult,UnimplementedDecoder,MissingField,ExpectedType};
+use typedopts::{DecodeResult,ErrorType};
+use rustc_serialize::Decodable;
 
-#[deriving(Decodable)]
-pub struct Args {
-  name:     ~str,
+#[derive(RustcDecodable)]
+struct Args {
+  name:     String,
   quantity: uint
 }
 
 fn main() {
   let args = os::args();
-  let opts = ~[
-    reqopt("n", "name", "insert a name here", ""),
-    reqopt("q", "quantity", "insert a quantity here", "")
-  ];
+  let mut opts = Options::new();
+  opts.reqopt("n", "name", "insert a name here", "");
+  opts.reqopt("q", "quantity", "insert a quantity here", "");
 
-  let matches = match getopts(args.tail(), opts) {
+  let matches = match opts.parse(args.tail()) {
     Ok(m) => { m },
     Err(f) => { println!("{}", f.to_err_msg()); return; }
   };
@@ -73,14 +73,14 @@ characters, strings are easy to do.
 Enumerations will require that you define them as Decodable too:
 
 ```Rust
-#[deriving(Decodable)]
+#[deriving(RustcDecodable)]
 enum Color {
   red,
   green,
   blue
 }
 
-#[deriving(Decodable)]
+#[deriving(RustcDecodable)]
 pub struct ParseEnum {
   color: Color
 }
@@ -93,7 +93,7 @@ if(decoded.color == blue) {
 Options are also supported:
 
 ```Rust
-#[deriving(Decodable)]
+#[deriving(RustcDecodable)]
 pub struct ParseOption {
   option: Option<uint>
 }
@@ -104,3 +104,4 @@ match decoded.option {
   None    => println!("no number was provided")
 }
 ```
+
