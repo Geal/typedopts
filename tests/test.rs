@@ -2,7 +2,7 @@ extern crate getopts;
 extern crate typedopts;
 
 extern crate "rustc-serialize" as rustc_serialize;
-use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
+use getopts::Options;
 use rustc_serialize::Decodable;
 use typedopts::{Error,ErrorType,DecodeResult};
 use std::vec::Vec;
@@ -14,8 +14,9 @@ struct ParseInt {
 
 #[test]
 fn parse_int() {
-  let opts = vec!(reqopt("n", "number", "integer", ""));
-  let matches = getopts(vec!("-n".to_string(), "10".to_string()).as_slice(), opts.as_slice()).ok().expect("getopts match");
+  let mut go = Options::new();
+  go.reqopt("n", "number", "integer", "");
+  let matches = go.parse(vec!("-n".to_string(), "10".to_string()).as_slice()).ok().expect("getopts match");
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseInt = Decodable::decode(&mut decoder).ok().expect("ParseInt");
   assert_eq!(decoded.number, 10);
@@ -23,8 +24,9 @@ fn parse_int() {
 
 #[test]
 fn parse_not_int() {
-  let opts = vec!(reqopt("n", "number", "integer", ""));
-  let matches = getopts(vec!("-n".to_string(), "10.0".to_string()).as_slice(), opts.as_slice()).ok().expect("getopts match");
+  let mut go = Options::new();
+  go.reqopt("n", "number", "integer", "");
+  let matches = go.parse(vec!("-n".to_string(), "10.0".to_string()).as_slice()).ok().expect("getopts match");
   let mut decoder = typedopts::Decoder::new(matches);
   let result:DecodeResult<ParseInt> = Decodable::decode(&mut decoder);
   assert_eq!(result, Err(ErrorType::ExpectedType("number".to_string(), "u64".to_string(), "10.0".to_string())));
@@ -37,8 +39,9 @@ struct ParseFloat {
 
 #[test]
 fn parse_float() {
-  let opts = vec!(reqopt("n", "number", "integer", ""));
-  let matches = getopts(vec!("-n".to_string(), "10".to_string()).as_slice(), opts.as_slice()).ok().expect("getopts match");
+  let mut go = Options::new();
+  go.reqopt("n", "number", "integer", "");
+  let matches = go.parse(vec!("-n".to_string(), "10".to_string()).as_slice()).ok().expect("getopts match");
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseFloat = Decodable::decode(&mut decoder).ok().expect("ParseFloat");
   assert_eq!(decoded.number, 10.0);
@@ -50,8 +53,9 @@ struct ParseBoolean {
 
 #[test]
 fn parse_bool() {
-  let opts = vec!(reqopt("b", "boolean", "bool", ""));
-  let matches = getopts(vec!("--boolean=true".to_string()).as_slice(), opts.as_slice()).ok().expect("getopts match");
+  let mut go = Options::new();
+  go.reqopt("b", "boolean", "bool", "");
+  let matches = go.parse(vec!("--boolean=true".to_string()).as_slice()).ok().expect("getopts match");
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseBoolean = Decodable::decode(&mut decoder).ok().expect("ParseBoolean");
   assert!(decoded.boolean);
@@ -65,8 +69,9 @@ struct ParseChar {
 
 #[test]
 fn parse_char() {
-  let opts = vec!(reqopt("c", "character", "char", ""));
-  let matches = getopts(vec!("-c".to_string(), "a".to_string()).as_slice(), opts.as_slice()).ok().expect("getopts match");
+  let mut go = Options::new();
+  go.reqopt("c", "character", "char", "");
+  let matches = go.parse(vec!("-c".to_string(), "a".to_string()).as_slice()).ok().expect("getopts match");
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseChar = Decodable::decode(&mut decoder).ok().expect("ParseChar");
   assert_eq!(decoded.character, 'a');
@@ -79,8 +84,9 @@ struct ParseString {
 
 #[test]
 fn parse_string() {
-  let opts = vec!(reqopt("s", "string", "string", ""));
-  let matches = getopts(vec!("-s".to_string(), "abcd".to_string()).as_slice(), opts.as_slice()).unwrap();
+  let mut go = Options::new();
+  go.reqopt("s", "string", "string", "");
+  let matches = go.parse(vec!("-s".to_string(), "abcd".to_string()).as_slice()).unwrap();
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseString = Decodable::decode(&mut decoder).ok().expect("ParseString");
   assert_eq!(decoded.string, "abcd".to_string());
@@ -100,8 +106,9 @@ struct ParseEnum {
 
 #[test]
 fn parse_enum() {
-  let opts = vec!(reqopt("c", "color", "enum", ""));
-  let matches = getopts(vec!("--color".to_string(), "Blue".to_string()).as_slice(), opts.as_slice()).unwrap();
+  let mut go = Options::new();
+  go.reqopt("c", "color", "enum", "");
+  let matches = go.parse(vec!("--color".to_string(), "Blue".to_string()).as_slice()).unwrap();
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseEnum = Decodable::decode(&mut decoder).ok().expect("ParseEnum");
   assert_eq!(decoded.color, Color::Blue);
@@ -115,8 +122,9 @@ struct ParseOption {
 
 #[test]
 fn parse_option() {
-  let opts = vec!(optopt("o", "option", "option", ""));
-  let matches = getopts(vec!("-o".to_string(), "1".to_string()).as_slice(), opts.as_slice()).unwrap();
+  let mut go = Options::new();
+  go.optopt("o", "option", "option", "");
+  let matches = go.parse(vec!("-o".to_string(), "1".to_string()).as_slice()).unwrap();
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseOption = Decodable::decode(&mut decoder).ok().expect("ParseOption");
   assert_eq!(decoded.option, Some(1));
@@ -124,8 +132,10 @@ fn parse_option() {
 
 #[test]
 fn parse_none_option() {
-  let opts = vec!(optopt("o", "option", "option", ""), reqopt("a", "a", "number", ""));
-  let matches = getopts(vec!("-a".to_string(), "1".to_string()).as_slice(), opts.as_slice()).unwrap();
+  let mut go = Options::new();
+  go.optopt("o", "option", "option", "");
+  go.reqopt("a", "a", "number", "");
+  let matches = go.parse(vec!("-a".to_string(), "1".to_string()).as_slice()).unwrap();
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseOption = Decodable::decode(&mut decoder).ok().expect("ParseOption");
   assert_eq!(decoded.option, None);
@@ -140,10 +150,11 @@ struct ParseStruct {
 
 #[test]
 fn parse_struct_noopt() {
-  let opts = vec!(reqopt("s", "string", "string", ""),
-               optopt("u", "optuint", "Option<uint>", ""),
-               optopt("c", "optenum", "Option<Color>", ""));
-  let matches = getopts(vec!("-s".to_string(), "abcd".to_string()).as_slice(), opts.as_slice()).unwrap();
+  let mut go = Options::new();
+  go.reqopt("s", "string", "string", "");
+  go.optopt("u", "optuint", "Option<uint>", "");
+  go.optopt("c", "optenum", "Option<Color>", "");
+  let matches = go.parse(vec!("-s".to_string(), "abcd".to_string()).as_slice()).unwrap();
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseStruct = Decodable::decode(&mut decoder).ok().expect("ParseStruct");
   assert_eq!(decoded.string, "abcd".to_string());
@@ -153,12 +164,13 @@ fn parse_struct_noopt() {
 
 #[test]
 fn parse_struct_optenum() {
-  let opts = vec!(reqopt("s", "string", "string", ""),
-               optopt("u", "optuint", "Option<uint>", ""),
-               optopt("c", "optenum", "Option<Color>", ""));
+  let mut go = Options::new();
+  go.reqopt("s", "string", "string", "");
+  go.optopt("u", "optuint", "Option<uint>", "");
+  go.optopt("c", "optenum", "Option<Color>", "");
   let d = vec!("-s".to_string(), "abcd".to_string(),
      "-c".to_string(), "Green".to_string());
-  let matches = getopts(d.as_slice(), opts.as_slice()).unwrap();
+  let matches = go.parse(d.as_slice()).unwrap();
   let mut decoder = typedopts::Decoder::new(matches);
   let decoded: ParseStruct = Decodable::decode(&mut decoder).ok().expect("ParseStruct");
   assert_eq!(decoded.string, "abcd".to_string());
@@ -168,10 +180,11 @@ fn parse_struct_optenum() {
 
 #[test]
 fn decode_task_ok() {
-  let opts = vec!(reqopt("s", "string", "string", ""),
-               optopt("u", "optuint", "Option<uint>", ""),
-               optopt("c", "optenum", "Option<Color>", ""));
-  let matches = getopts(vec!("-s".to_string(), "abcd".to_string()).as_slice(), opts.as_slice()).unwrap();
+  let mut go = Options::new();
+  go.reqopt("s", "string", "string", "");
+  go.optopt("u", "optuint", "Option<uint>", "");
+  go.optopt("c", "optenum", "Option<Color>", "");
+  let matches = go.parse(vec!("-s".to_string(), "abcd".to_string()).as_slice()).unwrap();
   let result = typedopts::decode(matches);
   assert!(result.is_ok());
   let decoded: ParseStruct = result.ok().expect("ParseStruct");
@@ -182,10 +195,11 @@ fn decode_task_ok() {
 
 #[test]
 fn decode_task_err() {
-  let opts = vec!(optopt("s", "string", "string", ""),
-               optopt("u", "optuint", "Option<uint>", ""),
-               optopt("c", "optenum", "Option<Color>", ""));
-  let matches = getopts(&vec!("-u".to_string(), "1".to_string())[], &opts[]).unwrap();
+  let mut go = Options::new();
+  go.optopt("s", "string", "string", "");
+  go.optopt("u", "optuint", "Option<uint>", "");
+  go.optopt("c", "optenum", "Option<Color>", "");
+  let matches = go.parse(&vec!("-u".to_string(), "1".to_string())[]).unwrap();
   let result: typedopts::DecodeResult<ParseStruct> = typedopts::decode(matches);
   assert!(result.is_err());
   let err = result.err().expect("ErrorType");

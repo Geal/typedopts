@@ -3,7 +3,7 @@ extern crate typedopts;
 extern crate "rustc-serialize" as rustc_serialize;
 
 use std::os;
-use getopts::{reqopt,optopt,optflag,getopts,OptGroup};
+use getopts::Options;
 use typedopts::{DecodeResult,ErrorType};
 use rustc_serialize::Decodable;
 
@@ -21,11 +21,21 @@ struct TestStruct1  {
   maybe: Option<int>
 }
 
-fn print_usage(program: &str, _opts: &[OptGroup]) {
-    println!("Usage: {} [options]", program);
-    println!("-o\t\tOutput");
-    println!("-d --data_int\tNumber");
-    println!("-h --help\tUsage");
+fn generate_options() -> Options {
+  let mut opts = Options::new();
+  opts.optopt("o", "", "set output file name", "NAME");
+  opts.reqopt("d", "data-int", "number", "NB");
+  opts.reqopt("s", "data-str", "str", "NB");
+  opts.reqopt("c", "color", "scolored", "");
+  opts.optopt("m", "maybe", "maybe int", "");
+  opts.optflag("h", "help", "print this help menu");
+
+  return opts;
+}
+
+fn print_usage(program: &str, opts: Options) {
+    let brief = format!("Usage: {} [options]", program);
+    print!("{}", opts.usage(brief.as_slice()));
 }
 
 fn main() {
@@ -33,21 +43,24 @@ fn main() {
 
   let program = args[0].clone();
 
-  let opts = vec!(
-    optopt("o", "", "set output file name", "NAME"),
-    reqopt("d", "data_int", "number", "NB"),
-    reqopt("s", "data_str", "str", "NB"),
-    reqopt("c", "color", "scolored", ""),
-    optopt("m", "maybe", "maybe int", ""),
-    optflag("h", "help", "print this help menu")
-  );
-  let matches = match getopts(args.tail(), opts.as_slice()) {
+  let mut help_opts = Options::new();
+  help_opts.optflag("h", "help", "print this help menu");
+
+  help_opts.parse(args.tail()).map(|m| {
+    if m.opt_present("h") {
+      print_usage(program.as_slice(), generate_options());
+      return;
+    }
+  });
+
+  let mut opts = generate_options();
+  let matches = match opts.parse(args.tail()) {
     Ok(m) => { m }
     Err(f) => { println!("{}", f.to_err_msg()); return }
   };
 
   if matches.opt_present("h") {
-    print_usage(program.as_slice(), opts.as_slice());
+    print_usage(program.as_slice(), opts);
     return;
   }
 

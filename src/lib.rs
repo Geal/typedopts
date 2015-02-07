@@ -70,7 +70,7 @@ impl Decoder {
   fn get_field<T:FromStr>(&self, field: &str) -> Option<T> {
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => None,
-      Some(s) => FromStr::from_str(s.as_slice())
+      Some(s) => FromStr::from_str(s.as_slice()).ok()
     }
   }
 }
@@ -80,7 +80,7 @@ macro_rules! read_primitive {
         fn $name(&mut self) -> DecodeResult<$ty> {
           match self.matches.opt_str(self.cur.as_slice()) {
             None    => Err(ErrorType::MissingField(self.cur.clone())),
-            Some(s) => match FromStr::from_str(s.as_slice()) {
+            Some(s) => match FromStr::from_str(s.as_slice()).ok() {
               None     => Err(self.expected("u64".to_string())),
               Some(nb) => Ok(nb)
             }
@@ -111,7 +111,7 @@ impl rustc_serialize::Decoder for Decoder {
   fn read_f64(&mut self) -> DecodeResult<f64> {
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s.as_slice()) {
+      Some(s) => match FromStr::from_str(s.as_slice()).ok() {
         None     => Err(self.expected("f64".to_string())),
         Some(nb) => Ok(nb)
       }
@@ -121,7 +121,7 @@ impl rustc_serialize::Decoder for Decoder {
   fn read_bool(&mut self) -> DecodeResult<bool> {
     match self.matches.opt_str(self.cur.as_slice()) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s.as_slice()) {
+      Some(s) => match FromStr::from_str(s.as_slice()).ok() {
         None     => Err(self.expected("boolean".to_string())),
         Some(b) => Ok(b)
       }
