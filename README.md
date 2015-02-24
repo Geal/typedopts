@@ -9,6 +9,8 @@ since the generated map of properties must be checked for existence,
 then cast to the required types, leading to a lot of options and pattern
 matching.
 
+Typedopts is available on [crates.io](https://crates.io/crates/typedopts)
+
 # Usage
 
 With this library, you can define a structure representing the possible
