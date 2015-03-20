@@ -9,4 +9,4 @@ repository = "https://github.com/Geal/typedopts"
 
 [dependencies]
 getopts = "~0.2.0"
-rustc-serialize = "~0.2.8"
+rustc-serialize = "~0.3.0"
