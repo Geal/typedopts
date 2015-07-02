@@ -1,6 +1,7 @@
 # Type aware command line parsing in Rust
 
 [![Build Status](https://travis-ci.org/Geal/typedopts.png?branch=master)](https://travis-ci.org/Geal/typedopts)
+[![Coverage Status](https://coveralls.io/repos/Geal/typedopts/badge.svg)](https://coveralls.io/r/Geal/typedopts)
 
 # Rationale
 
