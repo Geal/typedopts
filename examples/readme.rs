@@ -1,27 +1,28 @@
 extern crate getopts;
 extern crate typedopts;
 
-extern crate "rustc-serialize" as rustc_serialize;
+extern crate rustc_serialize;
 use getopts::Options;
 use std::os;
 use typedopts::{DecodeResult,ErrorType};
 use rustc_serialize::Decodable;
+use std::env;
 
 #[derive(RustcDecodable)]
 struct Args {
   name:     String,
-  quantity: uint
+  quantity: u8
 }
 
 fn main() {
-  let args = os::args();
+  let args: Vec<String> = env::args().collect();
   let mut go = Options::new();
   go.reqopt("n", "name", "insert a name here", "");
   go.reqopt("q", "quantity", "insert a quantity here", "");
 
-  let matches = match go.parse(args.tail()) {
+  let matches = match go.parse(args.last()) {
     Ok(m) => { m },
-    Err(f) => { println!("{}", f.to_err_msg()); return; }
+    Err(f) => { println!("{}", f.to_string()); return; }
   };
 
   let result: DecodeResult<Args> = typedopts::decode(matches);
@@ -30,6 +31,6 @@ fn main() {
       println!("name is {}", decoded.name);
       println!("quantity is {}", decoded.quantity);
     },
-    Err(f) => { println!("{}", f.to_err_msg()); return; }
+    Err(f) => { println!("{:?}", f); return; }
   }
 }

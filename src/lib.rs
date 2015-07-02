@@ -1,17 +1,15 @@
 #![crate_type = "lib"]
 
-extern crate core;
 extern crate getopts;
 extern crate rustc_serialize;
 
 use getopts::Matches;
-use core::str::FromStr;
-//use std::str::StrSlice;
+use std::str::FromStr;
 use rustc_serialize::Decodable;
 use std::num;
 use std::result::Result;
 
-#[derive(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum ErrorType {
   UnimplementedDecoder,
   MissingField(String),
@@ -19,7 +17,7 @@ pub enum ErrorType {
   GenericError(String)
 }
 
-#[derive(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct Error {
   e: ErrorType
 }
@@ -44,7 +42,7 @@ impl Decoder {
   fn expected(&self, expected_type: String) -> ErrorType {
     ErrorType::ExpectedType(self.cur.to_string(),
                        expected_type.to_string(),
-                       self.matches.opt_str(self.cur.as_slice()).unwrap())
+                       self.matches.opt_str(&self.cur).unwrap())
   }
 
 }
@@ -68,9 +66,9 @@ impl ErrorType {
 }
 impl Decoder {
   fn get_field<T:FromStr>(&self, field: &str) -> Option<T> {
-    match self.matches.opt_str(self.cur.as_slice()) {
+    match self.matches.opt_str(&self.cur) {
       None    => None,
-      Some(s) => FromStr::from_str(s.as_slice()).ok()
+      Some(s) => FromStr::from_str(&s).ok()
     }
   }
 }
@@ -78,9 +76,9 @@ impl Decoder {
 macro_rules! read_primitive {
     ($name:ident, $ty:ty) => {
         fn $name(&mut self) -> DecodeResult<$ty> {
-          match self.matches.opt_str(self.cur.as_slice()) {
+          match self.matches.opt_str(&self.cur) {
             None    => Err(ErrorType::MissingField(self.cur.clone())),
-            Some(s) => match FromStr::from_str(s.as_slice()).ok() {
+            Some(s) => match FromStr::from_str(&s).ok() {
               None     => Err(self.expected("u64".to_string())),
               Some(nb) => Ok(nb)
             }
@@ -109,9 +107,9 @@ impl rustc_serialize::Decoder for Decoder {
 
   fn read_f32(&mut self) -> DecodeResult<f32> { self.read_f64().map(|x| x as f32) }
   fn read_f64(&mut self) -> DecodeResult<f64> {
-    match self.matches.opt_str(self.cur.as_slice()) {
+    match self.matches.opt_str(&self.cur) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s.as_slice()).ok() {
+      Some(s) => match FromStr::from_str(&s).ok() {
         None     => Err(self.expected("f64".to_string())),
         Some(nb) => Ok(nb)
       }
@@ -119,9 +117,9 @@ impl rustc_serialize::Decoder for Decoder {
   }
 
   fn read_bool(&mut self) -> DecodeResult<bool> {
-    match self.matches.opt_str(self.cur.as_slice()) {
+    match self.matches.opt_str(&self.cur) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => match FromStr::from_str(s.as_slice()).ok() {
+      Some(s) => match FromStr::from_str(&s).ok() {
         None     => Err(self.expected("boolean".to_string())),
         Some(b) => Ok(b)
       }
@@ -129,14 +127,14 @@ impl rustc_serialize::Decoder for Decoder {
   }
 
   fn read_char(&mut self) -> DecodeResult<char> {
-    match self.matches.opt_str(self.cur.as_slice()) {
+    match self.matches.opt_str(&self.cur) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => if s.as_slice().chars().count() == 1 { Ok(s.as_slice().char_at(0)) } else { Err(self.expected("char".to_string())) }
+      Some(s) => if (&s).chars().count() == 1 { Ok(s.chars().next().unwrap()) } else { Err(self.expected("char".to_string())) }
     }
   }
 
   fn read_str(&mut self) -> DecodeResult<String> {
-    match self.matches.opt_str(self.cur.as_slice()) {
+    match self.matches.opt_str(&self.cur) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
       Some(s) => Ok(s)
     }
@@ -150,9 +148,9 @@ impl rustc_serialize::Decoder for Decoder {
 
   fn read_enum_variant<T, F>(&mut self, names: &[&str], f: F) -> DecodeResult<T> where F: FnOnce(&mut Decoder, usize) -> DecodeResult<T> {
     //println!("reading enum variant({}): {}", self.cur, names);
-    match self.matches.opt_str(self.cur.as_slice()) {
+    match self.matches.opt_str(&self.cur) {
       None    => Err(ErrorType::MissingField(self.cur.clone())),
-      Some(s) => match names.iter().position(|&e| e == s.as_slice()) {
+      Some(s) => match names.iter().position(|&e| e == &s) {
         None    => {
           let mut s = self.current_type.clone();
           s.push_str(" enum");
@@ -198,7 +196,7 @@ impl rustc_serialize::Decoder for Decoder {
   fn read_option<T, F>(&mut self, mut f: F) -> DecodeResult<T> where F: FnMut(&mut Decoder, bool) -> DecodeResult<T>
    {
     //println!("read_option");
-    match self.matches.opt_str(self.cur.as_slice()) {
+    match self.matches.opt_str(&self.cur) {
       None    => {
         //println!("option not there");
         f(self, false)

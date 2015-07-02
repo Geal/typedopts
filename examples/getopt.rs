@@ -1,8 +1,10 @@
 extern crate getopts;
 extern crate typedopts;
-extern crate "rustc-serialize" as rustc_serialize;
+extern crate rustc_serialize;
 
 use std::os;
+use std::env;
+use std::ffi::OsString;
 use getopts::Options;
 use typedopts::{DecodeResult,ErrorType};
 use rustc_serialize::Decodable;
@@ -18,7 +20,7 @@ struct TestStruct1  {
   data_int: u8,
   data_str: String,
   color: Color,
-  maybe: Option<int>
+  maybe: Option<i8>
 }
 
 fn generate_options() -> Options {
@@ -35,32 +37,32 @@ fn generate_options() -> Options {
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} [options]", program);
-    print!("{}", opts.usage(brief.as_slice()));
+    print!("{}", opts.usage(&brief));
 }
 
 fn main() {
-  let args = os::args();
-
-  let program = args[0].clone();
+  let mut args: Vec<String> = env::args().collect();
+  let program = (&args[0]).clone();
+  let mut args2: Vec<String> = env::args().collect();
 
   let mut help_opts = Options::new();
   help_opts.optflag("h", "help", "print this help menu");
 
-  help_opts.parse(args.tail()).map(|m| {
+  help_opts.parse(args).map(|m| {
     if m.opt_present("h") {
-      print_usage(program.as_slice(), generate_options());
+      print_usage(&program, generate_options());
       return;
     }
   });
 
   let mut opts = generate_options();
-  let matches = match opts.parse(args.tail()) {
+  let matches = match opts.parse(args2) {
     Ok(m) => { m }
-    Err(f) => { println!("{}", f.to_err_msg()); return }
+    Err(f) => { println!("{}", f.to_string()); return }
   };
 
   if matches.opt_present("h") {
-    print_usage(program.as_slice(), opts);
+    print_usage(&program, opts);
     return;
   }
 

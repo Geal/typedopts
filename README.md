@@ -34,7 +34,7 @@ struct Args {
 }
 
 fn main() {
-  let args = os::args();
+  let args = env::args().collect();
   let mut opts = Options::new();
   opts.reqopt("n", "name", "insert a name here", "");
   opts.reqopt("q", "quantity", "insert a quantity here", "");
