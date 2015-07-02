@@ -2,7 +2,7 @@
 
 extern crate core;
 extern crate getopts;
-extern crate "rustc-serialize" as rustc_serialize;
+extern crate rustc_serialize;
 
 use getopts::Matches;
 use core::str::FromStr;
