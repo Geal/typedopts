@@ -3,9 +3,7 @@ extern crate typedopts;
 
 extern crate rustc_serialize;
 use getopts::Options;
-use std::os;
-use typedopts::{DecodeResult,ErrorType};
-use rustc_serialize::Decodable;
+use typedopts::{DecodeResult};
 use std::env;
 
 #[derive(RustcDecodable)]

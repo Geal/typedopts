@@ -5,9 +5,8 @@ extern crate rustc_serialize;
 use getopts::Options;
 use rustc_serialize::Decodable;
 use typedopts::{Error,ErrorType,DecodeResult};
-use std::vec::Vec;
 
-#[derive(RustcDecodable,PartialEq,Eq,Show)]
+#[derive(RustcDecodable,PartialEq,Eq,Debug)]
 struct ParseInt {
   number: u8
 }
@@ -92,7 +91,7 @@ fn parse_string() {
   assert_eq!(decoded.string, "abcd".to_string());
 }
 
-#[derive(RustcDecodable, PartialEq, Eq, Show)]
+#[derive(RustcDecodable, PartialEq, Eq, Debug)]
 enum Color {
   Red,
   Blue,
@@ -141,7 +140,7 @@ fn parse_none_option() {
   assert_eq!(decoded.option, None);
 }
 
-#[derive(RustcDecodable, Show)]
+#[derive(RustcDecodable, Debug)]
 struct ParseStruct {
   string: String,
   optu8: Option<u8>,

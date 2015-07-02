@@ -2,13 +2,11 @@ extern crate getopts;
 extern crate typedopts;
 extern crate rustc_serialize;
 
-use std::os;
 use std::env;
-use std::ffi::OsString;
 use getopts::Options;
 use typedopts::{DecodeResult,ErrorType};
-use rustc_serialize::Decodable;
 
+#[allow(non_camel_case_types)]
 #[derive(RustcDecodable)]
 enum Color {
   red,
@@ -41,9 +39,8 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn main() {
-  let mut args: Vec<String> = env::args().collect();
+  let args: Vec<String> = env::args().collect();
   let program = (&args[0]).clone();
-  let mut args2: Vec<String> = env::args().collect();
 
   let mut help_opts = Options::new();
   help_opts.optflag("h", "help", "print this help menu");
@@ -55,7 +52,8 @@ fn main() {
     }
   });
 
-  let mut opts = generate_options();
+  let opts = generate_options();
+  let args2: Vec<String> = env::args().collect();
   let matches = match opts.parse(args2) {
     Ok(m) => { m }
     Err(f) => { println!("{}", f.to_string()); return }

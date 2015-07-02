@@ -6,7 +6,6 @@ extern crate rustc_serialize;
 use getopts::Matches;
 use std::str::FromStr;
 use rustc_serialize::Decodable;
-use std::num;
 use std::result::Result;
 
 #[derive(PartialEq, Eq, Debug)]
